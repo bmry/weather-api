@@ -2,8 +2,6 @@
 
 namespace App\Service;
 
-
-use App\Model\Temperature;
 use App\Providers\WeatherDataProvider;
 
 class CityTemperatureService implements TemperatureServiceInterface
@@ -14,11 +12,16 @@ class CityTemperatureService implements TemperatureServiceInterface
      */
     private $weatherDataProvider;
 
+    /**
+     * @param string $place
+     * @return float
+     * @throws \App\Exception\NoWeatherRecordFoundException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function getPlaceTemperature(string $place): float
     {
         $weatherInformation = $this->weatherDataProvider->getPlaceWeatherInformation($place);
         return $weatherInformation->temp;
-
     }
 
     /**

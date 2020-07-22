@@ -18,6 +18,13 @@ class CountryTemperatureService implements TemperatureServiceInterface
      */
     private $countryCapitalResolver;
 
+    /**
+     * @param string $place
+     * @return float
+     * @throws \App\Exception\NoWeatherRecordFoundException
+     * @throws \App\Exception\NonExistentCountryException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function getPlaceTemperature(string $place): float
     {
         $countryCapital = $this->countryCapitalResolver->getCountryCapitalByCode($place);

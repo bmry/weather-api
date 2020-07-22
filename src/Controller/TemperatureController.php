@@ -2,12 +2,12 @@
 
 namespace App\Controller;
 
+use App\Exception\MangahighWeatherApiException;
 use App\Model\Temperature;
 use App\Service\Factory\TemperatureServiceFactory;
 use App\Providers\WeatherDataProvider;
 use App\Service\TemperatureServiceTypeResolver;
 use App\Utility\TemperatureResponseUtil;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -22,21 +22,25 @@ class TemperatureController
      * @param WeatherDataProvider $weatherDataProviderService
      * @param TemperatureServiceTypeResolver $temperatureServiceTypeResolver
      * @param TemperatureServiceFactory $temperatureServiceFactory
-     * @return Temperature
+     * @return Temperature|\Symfony\Component\HttpFoundation\JsonResponse
      */
     public function __invoke(
         Request $data,
         WeatherDataProvider $weatherDataProviderService,
         TemperatureServiceTypeResolver $temperatureServiceTypeResolver,
-        TemperatureServiceFactory $temperatureServiceFactory): Temperature
+        TemperatureServiceFactory $temperatureServiceFactory)
     {
-        $serviceType = $temperatureServiceTypeResolver->resolveServiceType($data);
-        $temperatureService = $temperatureServiceFactory->build($serviceType);
-        $place = $data->query->get($serviceType);
+        try{
+            $serviceType = $temperatureServiceTypeResolver->resolveServiceType($data);
+            $temperatureService = $temperatureServiceFactory->build($serviceType);
+            $place = $data->query->get($serviceType);
+            $temperatureInCelsius = $temperatureService->getPlaceTemperature($place);
 
-        $temperatureInCelsius = $temperatureService->getPlaceTemperature($place);
+        }catch (MangahighWeatherApiException $mangahighWeatherApiException){
+            return  TemperatureResponseUtil::failureResponse();
+        }
 
-        return TemperatureResponseUtil::TemperatureResponse($temperatureInCelsius);
+        return TemperatureResponseUtil::successResponse($temperatureInCelsius);
 
     }
 

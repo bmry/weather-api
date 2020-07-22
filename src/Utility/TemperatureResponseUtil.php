@@ -4,6 +4,7 @@ namespace App\Utility;
 
 
 use App\Model\Temperature;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TemperatureResponseUtil
 {
@@ -11,7 +12,7 @@ class TemperatureResponseUtil
      * @param $temperatureInCelsius
      * @return Temperature
      */
-    public static function TemperatureResponse($temperatureInCelsius): Temperature
+    public static function successResponse($temperatureInCelsius): Temperature
     {
         $temperature = new Temperature();
         $temperature->setTemperatureInCelsius($temperatureInCelsius);
@@ -20,4 +21,10 @@ class TemperatureResponseUtil
 
         return $temperature;
     }
+
+    public static function failureResponse()
+    {
+        return new JsonResponse("No weather record found");
+    }
+
 }

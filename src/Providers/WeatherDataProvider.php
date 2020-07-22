@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 
+use App\Exception\NoWeatherRecordFoundException;
 use GuzzleHttp\Client;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class WeatherDataProvider
@@ -13,12 +15,27 @@ class WeatherDataProvider
      */
     private $parameterBag;
 
-    public function __construct(ParameterBagInterface $parameterBag)
+    private $logger;
+
+    /**
+     * WeatherDataProvider constructor.
+     * @param ParameterBagInterface $parameterBag
+     */
+    public function __construct(
+        LoggerInterface $logger,
+        ParameterBagInterface $parameterBag
+    )
     {
         $this->parameterBag = $parameterBag;
-
+        $this->logger = $logger;
     }
 
+    /**
+     * @param string $place
+     * @return mixed
+     * @throws NoWeatherRecordFoundException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function getPlaceWeatherInformation(string $place)
     {
         $weatherAPIKey = $this->parameterBag->get('open_weather_api_key');
@@ -28,14 +45,15 @@ class WeatherDataProvider
 
         try {
             $response = $httpClient->request('GET', $dataSource);
-            $response = json_decode($response->getBody()->getContents());
+            $weatherInformation = json_decode($response->getBody()->getContents());
+            $weatherInformation = $weatherInformation->main;
         } catch (\Exception $e) {
-            var_dump($e->getMessage());
-            exit;
-            $response = null;
+
+            $this->logger->error($e->getMessage());
+            throw new NoWeatherRecordFoundException($place);
         }
 
-        return $response->main;
+        return $weatherInformation;
     }
 
 }

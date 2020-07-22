@@ -3,6 +3,7 @@
 namespace App\Service\Factory;
 
 
+use App\Exception\InvalidServiceTypeException;
 use App\Providers\WeatherDataProvider;
 use App\Service\CityTemperatureService;
 use App\Service\CountryCapitalResolverService;
@@ -25,6 +26,11 @@ class TemperatureServiceFactory
      */
     private $countryCapitalResolver;
 
+    /**
+     * TemperatureServiceFactory constructor.
+     * @param WeatherDataProvider $weatherDataProviderService
+     * @param CountryCapitalResolverService $countryCapitalResolverService
+     */
     public function __construct(
         WeatherDataProvider $weatherDataProviderService,
         CountryCapitalResolverService $countryCapitalResolverService
@@ -33,6 +39,12 @@ class TemperatureServiceFactory
         $this->weatherDataProvider = $weatherDataProviderService;
         $this->countryCapitalResolver = $countryCapitalResolverService;
     }
+
+    /**
+     * @param string $serviceType
+     * @return TemperatureServiceInterface
+     * @throws InvalidServiceTypeException
+     */
     public function build(string $serviceType): TemperatureServiceInterface
     {
         switch ($serviceType){
@@ -43,13 +55,15 @@ class TemperatureServiceFactory
                 return $cityTemperatureService;
                 break;
             case self::SERVICE_TYPE_COUNTRY_CODE;
+
                 $countryTemperatureService = new CountryTemperatureService();
                 $countryTemperatureService->setDataProvider($this->weatherDataProvider);
                 $countryTemperatureService->setCountryCapitalResolver($this->countryCapitalResolver);
+
                 return $countryTemperatureService;
                 break;
             default:
-                throw new BadRequestHttpException();
+               throw new InvalidServiceTypeException("Unknown service");
         }
 
 
